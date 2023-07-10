@@ -5,6 +5,7 @@
 #include <string> // for string class
 #include <iostream>
 #include "xtensor-python/pyarray.hpp"     // Numpy bindings
+#include "shapes.h"
 typedef xt::pyarray<double> Array;
 
 Array dipole_field_B(Array& points, Array& m_points, Array& m);
@@ -21,4 +22,4 @@ Array define_a_uniform_cartesian_grid_between_two_toroidal_surfaces(Array& norma
 
 Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uniform, Array& xyz_outer);
 
-Array remove_dipoles(Array& xyz, Array& shape_list);
+Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list);

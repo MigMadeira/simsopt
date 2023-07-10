@@ -8,13 +8,14 @@ namespace py = pybind11;
 
 
 void init_shapes(py::module_ &m){
-    auto pyshape = py::class_<Shape, PyShape>(m, "Shape")
+    auto pyshape = py::class_<Shape, PyShape, ShapePtr>(m, "Shape")
         .def(py::init<>())
         .def("condition", &Shape::condition);
 
-    auto pycylinder = py::class_<Cylinder, Shape>(m, "Cylinder")
+    auto pycylinder = py::class_<Cylinder, Shape, CylinderPtr>(m, "Cylinder")
         .def(py::init<Array, double, double, double, double>())
         .def(py::init<double, double, double, double, double, double, double, double>())
+        .def("condition", &Cylinder::condition)
         .def_readwrite("base_point", &Cylinder::base_point)
         .def_readwrite("top_point", &Cylinder::top_point)
         .def_readwrite("height", &Cylinder::height)

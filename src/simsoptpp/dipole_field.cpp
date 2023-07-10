@@ -934,28 +934,35 @@ Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uni
 // Takes a Cartesian grid of dipoles, loops through
 // and removes a set of points which lie inside a given list of shapes.
 // Each shape must have a defined removal condition.
-Array remove_dipoles(Array& xyz, std::vector<Shape>& shape_list)
+Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
 {
     int ngrid = xyz.shape(0);
     int nshapes = shape_list.size();
     Array final_grid = xt::zeros<double>({ngrid, 3});
 
     // Loop through every dipole
-#pragma omp parallel for schedule(static)
+//#pragma omp parallel for schedule(static)
     for (int i = 0; i < ngrid; i++) {
         double X = xyz(i, 0);
         double Y = xyz(i, 1);
         double Z = xyz(i, 2);
-        
-        for (int j = 0; i < nshapes; i++) {
-            if (shape_list[j].condition(xyz(i))) {
-                break; //if a removal condition is verified go to the next point without adding
+        bool keep = true;
+
+        for (int j = 0; j < nshapes; j++) {
+            if (shape_list[j]->condition(xyz(i))) {
+                std::cout << "here";
+                keep = false;
+                break; // If a removal condition is verified, go to the next point without adding
             }
         }
-        //if none of the removal conditions are verified add the point
-        final_grid(i, 0) = X;
-        final_grid(i, 1) = Y;
-        final_grid(i, 2) = Z;
+
+        // If none of the removal conditions are verified, add the point
+        if (keep) {
+            final_grid(i, 0) = X;
+            final_grid(i, 1) = Y;
+            final_grid(i, 2) = Z;
+        }
     }
+
     return final_grid;
 }
