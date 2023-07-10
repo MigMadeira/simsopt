@@ -3,6 +3,8 @@
 #include "vec3dsimd.h"
 #include <cmath>
 #include <Eigen/Dense>
+#include "shapes.h"
+#include <vector>
 
 #if defined(USE_XSIMD)
 // Calculate the B field at a set of evaluation points from N dipoles:
@@ -844,7 +846,7 @@ Array define_a_uniform_cartesian_grid_between_two_toroidal_surfaces(Array& norma
     return final_grid;
 }
 
-// Takes a uniform CARTESIAN grid of dipoles, and loops through
+// Takes a uniform CARTESIAN grid of dipoles, loops through
 // and removes a set of points which lie inside an outer toroidal surface
 Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uniform, Array& xyz_outer)
 {
@@ -924,6 +926,36 @@ Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uni
             final_grid(i, 1) = Y;
             final_grid(i, 2) = Z;
         }
+    }
+    return final_grid;
+}
+
+
+// Takes a Cartesian grid of dipoles, loops through
+// and removes a set of points which lie inside a given list of shapes.
+// Each shape must have a defined removal condition.
+Array remove_dipoles(Array& xyz, std::vector<Shape>& shape_list)
+{
+    int ngrid = xyz.shape(0);
+    int nshapes = shape_list.size();
+    Array final_grid = xt::zeros<double>({ngrid, 3});
+
+    // Loop through every dipole
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < ngrid; i++) {
+        double X = xyz(i, 0);
+        double Y = xyz(i, 1);
+        double Z = xyz(i, 2);
+        
+        for (int j = 0; i < nshapes; i++) {
+            if (shape_list[j].condition(xyz(i))) {
+                break; //if a removal condition is verified go to the next point without adding
+            }
+        }
+        //if none of the removal conditions are verified add the point
+        final_grid(i, 0) = X;
+        final_grid(i, 1) = Y;
+        final_grid(i, 2) = Z;
     }
     return final_grid;
 }

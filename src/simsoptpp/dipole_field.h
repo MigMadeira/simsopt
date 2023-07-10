@@ -20,3 +20,5 @@ Array dipole_field_Bn(Array& points, Array& m_points, Array& unitnormal, int nfp
 Array define_a_uniform_cartesian_grid_between_two_toroidal_surfaces(Array& normal_inner, Array& normal_outer, Array& xyz_uniform, Array& xyz_inner, Array& xyz_outer);
 
 Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uniform, Array& xyz_outer);
+
+Array remove_dipoles(Array& xyz, Array& shape_list);

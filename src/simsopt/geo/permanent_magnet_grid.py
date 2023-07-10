@@ -416,7 +416,7 @@ class PermanentMagnetGrid:
         return pm_grid
 
 
-    def geo_setup_remove_magnets_inside_toroidal_surface(
+    def remove_magnets_inside_surface(
         self,
         outer_toroidal_surface: Surface
     ):
@@ -449,6 +449,35 @@ class PermanentMagnetGrid:
             self.pol_vectors = self.pol_vectors[inds,:]
 
             
+        self._optimization_setup()
+        
+    def remove_dipoles_inside_shapes(
+        self,
+        shape_list
+    ):
+            
+        contig = np.ascontiguousarray
+        self.dipole_grid_xyz = sopp.remove_dipoles(
+            contig(self.dipole_grid_xyz), 
+            shape_list)
+            
+        inds = np.ravel(np.logical_not(np.all(self.dipole_grid_xyz == 0.0, axis=-1)))
+        self.dipole_grid_xyz = self.dipole_grid_xyz[inds, :]
+        print(self.ndipoles)
+        self.ndipoles = self.dipole_grid_xyz.shape[0]
+        print(self.ndipoles)
+        self.pm_phi = np.arctan2(self.dipole_grid_xyz[:, 1], self.dipole_grid_xyz[:, 0])
+            
+        pointsToVTK('dipole_grid',
+                    contig(self.dipole_grid_xyz[:, 0]),
+                    contig(self.dipole_grid_xyz[:, 1]),
+                    contig(self.dipole_grid_xyz[:, 2]))
+            
+        self.m_maxima = self.m_maxima[inds]
+
+        if self.pol_vectors is not None:
+            self.pol_vectors = self.pol_vectors[inds,:]
+
         self._optimization_setup()
         
         
