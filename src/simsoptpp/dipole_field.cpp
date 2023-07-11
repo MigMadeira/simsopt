@@ -942,7 +942,7 @@ Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
     Array final_grid = xt::zeros<double>({ngrid, 3});
 
     // Loop through every dipole
-//#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static)
     for (int i = 0; i < ngrid; i++) {
         double X = xyz(i, 0);
         double Y = xyz(i, 1);
@@ -950,11 +950,18 @@ Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
         xt::xarray<double> point_i = xt::xarray<double>(xt::view(xyz, i, xt::all()));
         bool keep = true;
 
-        //std::cout << "xyz = " << xyz(i) << std::endl << "X = " << X << "Y = " << Y << "Z = " << Z << std::endl << point_i << std::endl;
+        // Process j in a sequential manner
         for (int j = 0; j < nshapes; j++) {
-            if (shape_list[j]->condition(point_i)) {
-                keep = false;
-                break; // If a removal condition is verified, go to the next point without adding
+#pragma omp critical
+            {
+                if (shape_list[j]->condition(point_i)) {
+                    keep = false;
+                }
+            }
+
+            // Early exit if removal condition is already satisfied
+            if (!keep) {
+                break;
             }
         }
 
@@ -968,6 +975,7 @@ Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
 
     return final_grid;
 }
+
 
 
 Array remove_dipoles_inside_cylinder(Array& xyz_uniform, double r_major, double r_minor, 

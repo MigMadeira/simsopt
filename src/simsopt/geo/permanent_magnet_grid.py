@@ -430,9 +430,9 @@ class PermanentMagnetGrid:
  
         inds = np.ravel(np.logical_not(np.all(self.dipole_grid_xyz == 0.0, axis=-1)))
         self.dipole_grid_xyz = self.dipole_grid_xyz[inds, :]
-        print(self.ndipoles)
+        
         self.ndipoles = self.dipole_grid_xyz.shape[0]
-        print(self.ndipoles)
+        
         self.pm_phi = np.arctan2(self.dipole_grid_xyz[:, 1], self.dipole_grid_xyz[:, 0])
             
         pointsToVTK('dipole_grid',
@@ -465,9 +465,9 @@ class PermanentMagnetGrid:
             
         inds = np.ravel(np.logical_not(np.all(self.dipole_grid_xyz == 0.0, axis=-1)))
         self.dipole_grid_xyz = self.dipole_grid_xyz[inds, :]
-        print(self.ndipoles)
+        
         self.ndipoles = self.dipole_grid_xyz.shape[0]
-        print(self.ndipoles)
+        
         self.pm_phi = np.arctan2(self.dipole_grid_xyz[:, 1], self.dipole_grid_xyz[:, 0])
             
         pointsToVTK('dipole_grid',
@@ -496,9 +496,9 @@ class PermanentMagnetGrid:
             
         inds = np.ravel(np.logical_not(np.all(self.dipole_grid_xyz == 0.0, axis=-1)))
         self.dipole_grid_xyz = self.dipole_grid_xyz[inds, :]
-        print(self.ndipoles)
+        
         self.ndipoles = self.dipole_grid_xyz.shape[0]
-        print(self.ndipoles)
+        
         self.pm_phi = np.arctan2(self.dipole_grid_xyz[:, 1], self.dipole_grid_xyz[:, 0])
             
         pointsToVTK('dipole_grid',

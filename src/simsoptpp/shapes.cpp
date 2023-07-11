@@ -62,36 +62,3 @@ bool Cylinder::condition(Array point) {
     // Point is within the h-tall section and within the radius
     return (d >= 0 && d <= height && s <= radius * radius); 
 }
-
-/*
-bool Cylinder::condition(Array point) {
-    //find the normal vector (the vector that defines the axis of the cylinder)
-    double a = top_point[0] - base_point[0];
-    double b = top_point[1] - base_point[1];
-    double c = top_point[2] - base_point[2]; 
-
-    //compute the cylinder and plane equations.
-    return  ((((point[1]-base_point[1])*(point[2]-top_point[2]) - (point[2]-base_point[2])*(point[1]-top_point[1]))*
-            ((point[1]-base_point[1])*(point[2]-top_point[2]) - (point[2]-base_point[2])*(point[1]-top_point[1]))+
-            ((point[2]-base_point[2])*(point[0]-top_point[0]) - (point[0]-base_point[0])*(point[2]-top_point[2]))*
-            ((point[2]-base_point[2])*(point[0]-top_point[0]) - (point[0]-base_point[0])*(point[2]-top_point[2]))+
-            ((point[0]-base_point[0])*(point[1]-top_point[1]) - (point[1]-base_point[1])*(point[0]-top_point[0]))*
-            ((point[0]-base_point[0])*(point[1]-top_point[1]) - (point[1]-base_point[1])*(point[0]-top_point[0]))-
-            radius*radius*height*height <= 0 )
-            && (a*(point[0]-top_point[0]) + b*(point[1]-top_point[1]) + c*(point[2]-top_point[2]) <= 0)
-            && (a*(point[0]-base_point[0]) + b*(point[1]-base_point[1]) + c*(point[2]-base_point[2]) >= 0)) ;
-}
-*/
-/*
-bool Cylinder::condition(Array point, double lower_bound, double upper_bound){
-
-    
-    return  ((point[1]-base_point[1])*(point[2]-top_point[2]) - (point[2]-base_point[2])*(point[1]-top_point[1]))*
-            ((point[1]-base_point[1])*(point[2]-top_point[2]) - (point[2]-base_point[2])*(point[1]-top_point[1]))+
-            ((point[2]-base_point[2])*(point[0]-top_point[0]) - (point[0]-base_point[0])*(point[2]-top_point[2]))*
-            ((point[2]-base_point[2])*(point[0]-top_point[0]) - (point[0]-base_point[0])*(point[2]-top_point[2]))+
-            ((point[0]-base_point[0])*(point[1]-top_point[1]) - (point[1]-base_point[1])*(point[0]-top_point[0]))*
-            ((point[0]-base_point[0])*(point[1]-top_point[1]) - (point[1]-base_point[1])*(point[0]-top_point[0]))-
-            radius*radius*height*height < 0 ;
-}
-*/
