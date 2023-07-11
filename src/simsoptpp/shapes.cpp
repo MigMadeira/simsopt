@@ -53,17 +53,14 @@ bool Cylinder::condition(Array point) {
 
     // d = distance from B along cylinder axis
     double d = axis_vector[0] * xL + axis_vector[1] * yL + axis_vector[2] * zL;
-    if (d <= 0 || d >= height) {
-        // Point is not within the h-tall section
-        return true;
-    }
 
     // s = distance squared from the cylinder axis
     double s = std::pow(axis_vector[1] * zL - axis_vector[2] * yL, 2) +
               std::pow(axis_vector[2] * xL - axis_vector[0] * zL, 2) +
               std::pow(axis_vector[0] * yL - axis_vector[1] * xL, 2);
-
-    return (s <= radius * radius);
+    
+    // Point is within the h-tall section and within the radius
+    return (d >= 0 && d <= height && s <= radius * radius); 
 }
 
 /*

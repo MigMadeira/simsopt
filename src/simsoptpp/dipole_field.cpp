@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include "shapes.h"
 #include <vector>
+#include <xtensor/xview.hpp>
 
 #if defined(USE_XSIMD)
 // Calculate the B field at a set of evaluation points from N dipoles:
@@ -946,10 +947,12 @@ Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
         double X = xyz(i, 0);
         double Y = xyz(i, 1);
         double Z = xyz(i, 2);
+        xt::xarray<double> point_i = xt::xarray<double>(xt::view(xyz, i, xt::all()));
         bool keep = true;
 
+        //std::cout << "xyz = " << xyz(i) << std::endl << "X = " << X << "Y = " << Y << "Z = " << Z << std::endl << point_i << std::endl;
         for (int j = 0; j < nshapes; j++) {
-            if (shape_list[j]->condition(xyz(i))) {
+            if (shape_list[j]->condition(point_i)) {
                 keep = false;
                 break; // If a removal condition is verified, go to the next point without adding
             }
