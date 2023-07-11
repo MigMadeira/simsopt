@@ -23,3 +23,7 @@ Array define_a_uniform_cartesian_grid_between_two_toroidal_surfaces(Array& norma
 Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uniform, Array& xyz_outer);
 
 Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list);
+
+Array remove_dipoles_inside_cylinder(Array& xyz_uniform, double r_major, double r_minor, 
+                                            double toroidal_angle, double poloidal_angle, 
+                                            double height, double radius, double theta, double phi);

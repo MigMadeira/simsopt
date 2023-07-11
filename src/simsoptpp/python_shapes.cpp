@@ -18,6 +18,7 @@ void init_shapes(py::module_ &m){
         .def("condition", &Cylinder::condition)
         .def_readwrite("base_point", &Cylinder::base_point)
         .def_readwrite("top_point", &Cylinder::top_point)
+        .def_readwrite("axis_vector", &Cylinder::axis_vector)
         .def_readwrite("height", &Cylinder::height)
         .def_readwrite("radius", &Cylinder::radius);
 }

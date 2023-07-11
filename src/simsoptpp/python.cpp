@@ -70,6 +70,7 @@ PYBIND11_MODULE(simsoptpp, m) {
     m.def("define_a_uniform_cartesian_grid_between_two_toroidal_surfaces" , &define_a_uniform_cartesian_grid_between_two_toroidal_surfaces);
     m.def("remove_magnets_inside_toroidal_surface" , &remove_magnets_inside_toroidal_surface);
     m.def("remove_dipoles" , &remove_dipoles);
+    m.def("remove_dipoles_inside_cylinder", &remove_dipoles_inside_cylinder);
 
     // Permanent magnet optimization algorithms have many default arguments
     m.def("MwPGP_algorithm", &MwPGP_algorithm, py::arg("A_obj"), py::arg("b_obj"), py::arg("ATb"), py::arg("m_proxy"), py::arg("m0"), py::arg("m_maxima"), py::arg("alpha"), py::arg("nu") = 1.0e100, py::arg("epsilon") = 1.0e-3, py::arg("reg_l0") = 0.0, py::arg("reg_l1") = 0.0, py::arg("reg_l2") = 0.0, py::arg("max_iter") = 500, py::arg("min_fb") = 1.0e-20, py::arg("verbose") = false);

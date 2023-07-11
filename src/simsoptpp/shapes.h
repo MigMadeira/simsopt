@@ -16,6 +16,7 @@ class Cylinder: public Shape{
     public:
         Array base_point;
         Array top_point;
+        Array axis_vector;
         double height;
         double radius;
 

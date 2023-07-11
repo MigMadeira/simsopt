@@ -950,7 +950,6 @@ Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
 
         for (int j = 0; j < nshapes; j++) {
             if (shape_list[j]->condition(xyz(i))) {
-                std::cout << "here";
                 keep = false;
                 break; // If a removal condition is verified, go to the next point without adding
             }
@@ -964,5 +963,58 @@ Array remove_dipoles(Array& xyz, std::vector<ShapePtr>& shape_list)
         }
     }
 
+    return final_grid;
+}
+
+
+Array remove_dipoles_inside_cylinder(Array& xyz_uniform, double r_major, double r_minor, 
+                                            double toroidal_angle, double poloidal_angle, 
+                                            double height, double radius, double theta, double phi)
+{
+    Array base_point = xt::zeros<double>({3});
+    Array top_point = xt::zeros<double>({3});
+    Array axis_vector = xt::zeros<double>({3});
+
+    base_point[0] = (r_major + r_minor*cos(poloidal_angle))*cos(toroidal_angle);
+    base_point[1] = (r_major + r_minor*cos(poloidal_angle))*sin(toroidal_angle);
+    base_point[2] = r_minor*sin(poloidal_angle);
+
+    axis_vector[0] = sin(theta)*cos(phi);
+    axis_vector[1] = sin(theta)*sin(phi);
+    axis_vector[2] = cos(theta);
+
+    top_point[0] = base_point[0] + height*axis_vector[0];
+    top_point[1] = base_point[1] + height*axis_vector[1];
+    top_point[2] = base_point[2] + height*axis_vector[2];
+
+    int ngrid = xyz_uniform.shape(0);
+    Array final_grid = xt::zeros<double>({ngrid, 3});
+
+    // Loop through every dipole
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < ngrid; i++) {
+        double X = xyz_uniform(i, 0);
+        double Y = xyz_uniform(i, 1);
+        double Z = xyz_uniform(i, 2);
+
+        // L = p - B, the point p relative to the base B
+        double xL = X - base_point[0];
+        double yL = Y - base_point[1];
+        double zL = Z - base_point[2];
+
+        // d = distance from B along cylinder axis
+        double d = axis_vector[0] * xL + axis_vector[1] * yL + axis_vector[2] * zL;
+
+        // s = distance squared from the cylinder axis
+        double s = std::pow(axis_vector[1] * zL - axis_vector[2] * yL, 2) +
+                std::pow(axis_vector[2] * xL - axis_vector[0] * zL, 2) +
+                std::pow(axis_vector[0] * yL - axis_vector[1] * xL, 2);
+
+        if (d <= 0 || d >= height || s >= radius * radius) { // Point is not within the h-tall section or not within the radius
+            final_grid(i, 0) = X;
+            final_grid(i, 1) = Y;
+            final_grid(i, 2) = Z;
+        }
+    }
     return final_grid;
 }

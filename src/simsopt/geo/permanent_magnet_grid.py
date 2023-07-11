@@ -416,6 +416,39 @@ class PermanentMagnetGrid:
         return pm_grid
 
 
+    def remove_dipoles_inside_cylinder(
+        self,
+        r_major, r_minor, toroidal_angle, 
+        poloidal_angle, height, radius, theta, phi
+    ):
+            
+        contig = np.ascontiguousarray
+            
+        self.dipole_grid_xyz = sopp.remove_dipoles_inside_cylinder(
+            contig(self.dipole_grid_xyz), r_major, r_minor, 
+            toroidal_angle, poloidal_angle, height, radius, theta, phi)
+ 
+        inds = np.ravel(np.logical_not(np.all(self.dipole_grid_xyz == 0.0, axis=-1)))
+        self.dipole_grid_xyz = self.dipole_grid_xyz[inds, :]
+        print(self.ndipoles)
+        self.ndipoles = self.dipole_grid_xyz.shape[0]
+        print(self.ndipoles)
+        self.pm_phi = np.arctan2(self.dipole_grid_xyz[:, 1], self.dipole_grid_xyz[:, 0])
+            
+        pointsToVTK('dipole_grid',
+                    contig(self.dipole_grid_xyz[:, 0]),
+                    contig(self.dipole_grid_xyz[:, 1]),
+                    contig(self.dipole_grid_xyz[:, 2]))
+            
+
+        self.m_maxima = self.m_maxima[inds]
+
+        if self.pol_vectors is not None:
+            self.pol_vectors = self.pol_vectors[inds,:]
+
+            
+        self._optimization_setup()
+
     def remove_magnets_inside_surface(
         self,
         outer_toroidal_surface: Surface
