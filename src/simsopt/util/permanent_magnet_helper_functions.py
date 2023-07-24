@@ -6,7 +6,8 @@ __all__ = ['read_focus_coils', 'coil_optimization',
            'trace_fieldlines', 'make_qfm', 
            'initialize_coils', 'calculate_on_axis_B',
            'make_optimization_plots', 'run_Poincare_plots',
-           'make_Bnormal_plots', 'initialize_default_kwargs'
+           'make_Bnormal_plots', 'initialize_default_kwargs',
+	   'ISTELL_coil_optimization'
            ]
 
 import numpy as np
@@ -243,6 +244,11 @@ def ISTELL_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     from simsopt.objectives import QuadraticPenalty
     from simsopt.geo import curves_to_vtk
     from simsopt.objectives import SquaredFlux
+	
+    out_dir = Path(out_dir)
+    nphi = len(s.quadpoints_phi)
+    ntheta = len(s.quadpoints_theta)
+    ncoils = len(base_curves)
 
     MAXITER = 2000  # number of iterations for minimize
 
