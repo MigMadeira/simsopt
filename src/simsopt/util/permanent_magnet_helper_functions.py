@@ -238,7 +238,7 @@ def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
 
-def ISTELL_coil_optimization(s, bs, base_curves, curves, out_dir=''):
+def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight, out_dir=''):
     # optimize the currents in the TF coils
     from simsopt.geo import CurveLength
     from simsopt.objectives import QuadraticPenalty
@@ -253,7 +253,7 @@ def ISTELL_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     MAXITER = 2000  # number of iterations for minimize
 
     # Weight on the curve lengths in the objective function:
-    LENGTH_WEIGHT = 1e-4
+    LENGTH_WEIGHT = length_weight
     
     Jls = [CurveLength(c) for c in base_curves]
     
