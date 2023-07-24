@@ -190,7 +190,109 @@ def coil_optimization(s, bs, base_curves, curves, out_dir=''):
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
 
+def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
+    # optimize the currents in the TF coils
+    from simsopt.geo import curves_to_vtk
+    from simsopt.objectives import SquaredFlux
 
+    MAXITER = 2000  # number of iterations for minimize
+
+    # Define the objective function:
+    JF = SquaredFlux(s, bs)
+
+    def fun(dofs):
+        """ Function for coil optimization grabbed from stage_two_optimization.py """
+        JF.x = dofs
+        J = JF.J()
+        grad = JF.dJ()
+        BdotN = np.mean(np.abs(np.sum(bs.B().reshape((nphi, ntheta, 3)) * s.unitnormal(), axis=2)))
+        outstr = f"J={J:.1e}, ⟨B·n⟩={BdotN:.1e}"
+        print(outstr)
+        return J, grad
+
+    print("""
+    ################################################################################
+    ### Perform a Taylor test ######################################################
+    ################################################################################
+    """)
+    f = fun
+    dofs = JF.x
+    np.random.seed(1)
+    h = np.random.uniform(size=dofs.shape)
+
+    J0, dJ0 = f(dofs)
+    dJh = sum(dJ0 * h)
+    for eps in [1e-3, 1e-4, 1e-5, 1e-6, 1e-7]:
+        J1, _ = f(dofs + eps*h)
+        J2, _ = f(dofs - eps*h)
+        print("err", (J1-J2)/(2*eps) - dJh)
+
+    print("""
+    ################################################################################
+    ### Run the optimisation #######################################################
+    ################################################################################
+    """)
+    res = minimize(fun, dofs, jac=True, method='L-BFGS-B', options={'maxiter': MAXITER, 'maxcor': 300}, tol=1e-15)
+    curves_to_vtk(curves, out_dir / "curves_opt")
+    bs.set_points(s.gamma().reshape((-1, 3)))
+    return bs
+
+def ISTELL_coil_optimization(s, bs, base_curves, curves, out_dir=''):
+    # optimize the currents in the TF coils
+    from simsopt.geo import CurveLength
+    from simsopt.objectives import QuadraticPenalty
+    from simsopt.geo import curves_to_vtk
+    from simsopt.objectives import SquaredFlux
+
+    MAXITER = 2000  # number of iterations for minimize
+
+    # Weight on the curve lengths in the objective function:
+    LENGTH_WEIGHT = 1e-4
+    
+    Jls = [CurveLength(c) for c in base_curves]
+    
+    # Define the objective function:
+    JF = SquaredFlux(s, bs) + LENGTH_WEIGHT * sum(Jls)
+
+    def fun(dofs):
+        """ Function for coil optimization grabbed from stage_two_optimization.py """
+        JF.x = dofs
+        J = JF.J()
+        grad = JF.dJ()
+        BdotN = np.mean(np.abs(np.sum(bs.B().reshape((nphi, ntheta, 3)) * s.unitnormal(), axis=2)))
+        cl_string = ", ".join([f"{J.J():.1f}" for J in Jls])
+        outstr = f"J={J:.1e}, ⟨B·n⟩={BdotN:.1e},  Len=sum([{cl_string}])={sum(J.J() for J in Jls):.1f}"
+        print(outstr)
+        return J, grad
+
+    print("""
+    ################################################################################
+    ### Perform a Taylor test ######################################################
+    ################################################################################
+    """)
+    f = fun
+    dofs = JF.x
+    np.random.seed(1)
+    h = np.random.uniform(size=dofs.shape)
+
+    J0, dJ0 = f(dofs)
+    dJh = sum(dJ0 * h)
+    for eps in [1e-3, 1e-4, 1e-5, 1e-6, 1e-7]:
+        J1, _ = f(dofs + eps*h)
+        J2, _ = f(dofs - eps*h)
+        print("err", (J1-J2)/(2*eps) - dJh)
+
+    print("""
+    ################################################################################
+    ### Run the optimisation #######################################################
+    ################################################################################
+    """)
+    res = minimize(fun, dofs, jac=True, method='L-BFGS-B', options={'maxiter': MAXITER, 'maxcor': 300}, tol=1e-15)
+    curves_to_vtk(curves, out_dir / "curves_opt")
+    bs.set_points(s.gamma().reshape((-1, 3)))
+    return bs
+    
+    
 def trace_fieldlines(bfield, label, s, comm, out_dir=''):
     """
     Make Poincare plots on a surface as in the trace_fieldlines
