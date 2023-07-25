@@ -238,23 +238,29 @@ def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
 
-def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight, out_dir=''):
+def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight=0, length_threshold=0, length_threshold_weight=0, out_dir=''):
     # optimize the currents in the TF coils
     from simsopt.geo import CurveLength
     from simsopt.objectives import QuadraticPenalty
     from simsopt.geo import curves_to_vtk
     from simsopt.objectives import SquaredFlux
 
-    MAXITER = 2000  # number of iterations for minimize
+    out_dir = Path(out_dir)
+    nphi = len(s.quadpoints_phi)
+    ntheta = len(s.quadpoints_theta)
+    ncoils = len(base_curves)
+    
+    #MAXITER = 5000  # number of iterations for minimize
 
     # Weight on the curve lengths in the objective function:
     LENGTH_WEIGHT = length_weight
-    
-    Jls = [CurveLength(c) for c in base_curves]
-    
-    # Define the objective function:
-    JF = SquaredFlux(s, bs) + LENGTH_WEIGHT * sum(Jls)
+    LENGTH_WEIGHT2 = length_threshold_weight     #penalizes coils with a length over LENGTH_THRESHOLD
+    LENGTH_THRESHOLD = length_threshold
 
+    Jls = [CurveLength(c) for c in base_curves]
+    Jld = sum(QuadraticPenalty(Jls[i], LENGTH_THRESHOLD,f="max") for i in range(ncoils))
+    # Define the objective function:
+    JF = SquaredFlux(s, bs,definition="local") + LENGTH_WEIGHT * sum(Jls) + LENGTH_WEIGHT2 * Jld
     def fun(dofs):
         """ Function for coil optimization grabbed from stage_two_optimization.py """
         JF.x = dofs
@@ -288,7 +294,7 @@ def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight, out_dir=
     ### Run the optimisation #######################################################
     ################################################################################
     """)
-    res = minimize(fun, dofs, jac=True, method='L-BFGS-B', options={'maxiter': MAXITER, 'maxcor': 300}, tol=1e-15)
+    res = minimize(fun, dofs, jac=True, method='L-BFGS-B', tol=1e-15)
     curves_to_vtk(curves, out_dir / "curves_opt")
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
