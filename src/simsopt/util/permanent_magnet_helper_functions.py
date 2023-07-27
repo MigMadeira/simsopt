@@ -7,7 +7,7 @@ __all__ = ['read_focus_coils', 'coil_optimization',
            'initialize_coils', 'calculate_on_axis_B',
            'make_optimization_plots', 'run_Poincare_plots',
            'make_Bnormal_plots', 'initialize_default_kwargs',
-	   'ISTELL_coil_optimization'
+	   'ISTELL_coil_optimization', 'TF_coil_optimization'
            ]
 
 import numpy as np
@@ -196,10 +196,13 @@ def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     from simsopt.geo import curves_to_vtk
     from simsopt.objectives import SquaredFlux
 
-    MAXITER = 2000  # number of iterations for minimize
-
+    out_dir = Path(out_dir)
+    nphi = len(s.quadpoints_phi)
+    ntheta = len(s.quadpoints_theta)
+    ncoils = len(base_curves)
+    
     # Define the objective function:
-    JF = SquaredFlux(s, bs)
+    JF = SquaredFlux(s, bs, definition="local")
 
     def fun(dofs):
         """ Function for coil optimization grabbed from stage_two_optimization.py """
@@ -207,34 +210,19 @@ def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
         J = JF.J()
         grad = JF.dJ()
         BdotN = np.mean(np.abs(np.sum(bs.B().reshape((nphi, ntheta, 3)) * s.unitnormal(), axis=2)))
+        currents_string = ", ".join([f"{coil.current.get_value():.1f}" for coil in bs.coils[:6]])
         outstr = f"J={J:.1e}, ⟨B·n⟩={BdotN:.1e}"
+        outstr += f",  Currents=[{currents_string}]"
         print(outstr)
         return J, grad
-
-    print("""
-    ################################################################################
-    ### Perform a Taylor test ######################################################
-    ################################################################################
-    """)
-    f = fun
-    dofs = JF.x
-    np.random.seed(1)
-    h = np.random.uniform(size=dofs.shape)
-
-    J0, dJ0 = f(dofs)
-    dJh = sum(dJ0 * h)
-    for eps in [1e-3, 1e-4, 1e-5, 1e-6, 1e-7]:
-        J1, _ = f(dofs + eps*h)
-        J2, _ = f(dofs - eps*h)
-        print("err", (J1-J2)/(2*eps) - dJh)
 
     print("""
     ################################################################################
     ### Run the optimisation #######################################################
     ################################################################################
     """)
-    res = minimize(fun, dofs, jac=True, method='L-BFGS-B', options={'maxiter': MAXITER, 'maxcor': 300}, tol=1e-15)
-    curves_to_vtk(curves, out_dir / "curves_opt")
+    dofs = JF.x
+    res = minimize(fun, dofs, jac=True, method='L-BFGS-B', tol=1e-15)
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
 
