@@ -15,9 +15,9 @@ Cylinder::Cylinder(Array _base_point, double _height, double _radius, double the
     height = _height;
     radius = _radius;
 
-    axis_vector[0] = sin(theta)*cos(phi);
+    axis_vector[0] = cos(theta)*sin(phi);
     axis_vector[1] = sin(theta)*sin(phi);
-    axis_vector[2] = cos(theta);
+    axis_vector[2] = cos(phi);
 
     top_point[0] = base_point[0] + height*axis_vector[0];
     top_point[1] = base_point[1] + height*axis_vector[1];
@@ -36,9 +36,9 @@ Cylinder::Cylinder(double r_major, double r_minor, double toroidal_angle, double
     base_point[1] = (r_major + r_minor*cos(poloidal_angle))*sin(toroidal_angle);
     base_point[2] = r_minor*sin(poloidal_angle);
 
-    axis_vector[0] = sin(theta)*cos(phi);
+    axis_vector[0] = cos(theta)*sin(phi);
     axis_vector[1] = sin(theta)*sin(phi);
-    axis_vector[2] = cos(theta);
+    axis_vector[2] = cos(phi);
 
     top_point[0] = base_point[0] + height*axis_vector[0];
     top_point[1] = base_point[1] + height*axis_vector[1];
