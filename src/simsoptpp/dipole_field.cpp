@@ -848,8 +848,8 @@ Array define_a_uniform_cartesian_grid_between_two_toroidal_surfaces(Array& norma
 }
 
 // Takes a uniform CARTESIAN grid of dipoles, loops through
-// and removes a set of points which lie inside an outer toroidal surface
-Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uniform, Array& xyz_outer)
+// and removes a set of points which lie outside an outer toroidal surface
+Array remove_magnets_outside_toroidal_surface(Array& normal_outer, Array& xyz_uniform, Array& xyz_outer)
 {
     // For each toroidal cross-section:
     // For each dipole location:
@@ -931,6 +931,89 @@ Array remove_magnets_inside_toroidal_surface(Array& normal_outer, Array& xyz_uni
     return final_grid;
 }
 
+// Takes a uniform CARTESIAN grid of dipoles, loops through
+// and removes a set of points which lie inside a toroidal surface
+Array remove_magnets_inside_toroidal_surface(Array& normal_inner, Array& xyz_uniform, Array& xyz_inner)
+{
+    // For each toroidal cross-section:
+    // For each dipole location:
+    //     1. Find nearest point from dipole to the surface
+    //     2. Select nearest point that is closest to the dipole
+    //     3. Get normal vector of this surface point
+    //     4. Draw ray from dipole location in the direction of this normal vector
+    //     5. If closest point between the surface and the ray is the
+    //           end of the ray, conclude point is inside the surface.
+    //     6. If Step 5 was False add the point to the final grid.
+
+    int num_inner = xyz_inner.shape(0);
+    int ngrid = xyz_uniform.shape(0);
+    int num_ray = 2000;
+    Array final_grid = xt::zeros<double>({ngrid, 3});
+
+    // Loop through every dipole
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < ngrid; i++) {
+        double X = xyz_uniform(i, 0);
+        double Y = xyz_uniform(i, 1);
+        double Z = xyz_uniform(i, 2);
+
+        // find nearest point on inner toroidal surface
+        double min_dist_inner = 1e5;
+        int inner_loc = 0;
+
+        for (int k = 0; k < num_inner; k++) {
+            double x_inner = xyz_inner(k, 0);
+            double y_inner = xyz_inner(k, 1);
+            double z_inner = xyz_inner(k, 2);
+            double dist_inner = (x_inner - X) * (x_inner - X) + (y_inner - Y) * (y_inner - Y) + (z_inner - Z) * (z_inner - Z);
+            if (dist_inner < min_dist_inner) {
+                min_dist_inner = dist_inner;
+                inner_loc = k;
+	        }
+	    }
+        double nx = 0.0;
+        double ny = 0.0;
+        double nz = 0.0;
+
+
+        nx = normal_inner(inner_loc, 0);
+        ny = normal_inner(inner_loc, 1);
+	    nz = normal_inner(inner_loc, 2);
+	    
+        // normalize the normal vectors
+        double norm_vec = sqrt(nx * nx + ny * ny + nz * nz);
+        double ray_x = nx / norm_vec;
+        double ray_y = ny / norm_vec;
+        double ray_z = nz / norm_vec;
+
+        // Compute all the rays and find the location of minimum ray-surface distance
+        double dist_inner_ray = 0.0;
+        double min_dist_inner_ray = 1e5;
+        int nearest_loc_inner = 0;
+        double ray_equation_x = 0.0;
+        double ray_equation_y = 0.0;
+        double ray_equation_z = 0.0;
+        for (int k = 0; k < num_ray; k++) {
+            ray_equation_x = X + ray_x * (4.0 / ((double) num_ray)) * k;
+            ray_equation_y = Y + ray_y * (4.0 / ((double) num_ray)) * k;
+            ray_equation_z = Z + ray_z * (4.0 / ((double) num_ray)) * k;
+            dist_inner_ray = (xyz_inner(inner_loc, 0) - ray_equation_x) * (xyz_inner(inner_loc, 0) - ray_equation_x) + (xyz_inner(inner_loc, 1) - ray_equation_y) * (xyz_inner(inner_loc, 1) - ray_equation_y) + (xyz_inner(inner_loc, 2) - ray_equation_z) * (xyz_inner(inner_loc, 2) - ray_equation_z);
+            
+            if (dist_inner_ray < min_dist_inner_ray) {
+                min_dist_inner_ray = dist_inner_ray;
+                nearest_loc_inner = k;
+            }
+	    }
+
+        // nearest distance from the inner surface to the ray should NOT be the original point
+        if (nearest_loc_inner == 0) {
+            final_grid(i, 0) = X;
+            final_grid(i, 1) = Y;
+            final_grid(i, 2) = Z;
+        }
+    }
+    return final_grid;
+}
 
 // Takes a Cartesian grid of dipoles, loops through
 // and removes a set of points which lie inside a given list of shapes.
