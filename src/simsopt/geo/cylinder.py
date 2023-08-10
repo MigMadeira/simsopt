@@ -47,10 +47,12 @@ def cylinder_to_vtk(cylinder: sopp.Cylinder, filename, n_theta=100, n_z=100, ext
             rotation = R.from_rotvec(2 * np.pi * d_theta[j] * ax_vec) 
 
             vec2 = rotation.apply(perp_vec)
+            vec2 = vec2/(vec2[0]**2 + vec2[1]**2 + vec2[2]**2)**0.5
 
             x.append(cylinder.base_point[0] + vec1[0] + cylinder.radius * vec2[0])
             y.append(cylinder.base_point[1] + vec1[1] + cylinder.radius * vec2[1])
             z.append(cylinder.base_point[2] + vec1[2] + cylinder.radius * vec2[2])
+
 
     x = np.array(x).reshape((1, n_z, n_theta))
     y = np.array(y).reshape((1, n_z, n_theta))
