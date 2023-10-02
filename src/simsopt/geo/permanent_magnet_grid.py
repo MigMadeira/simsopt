@@ -448,6 +448,39 @@ class PermanentMagnetGrid:
 
     def remove_magnets_inside_surface(
         self,
+        inner_toroidal_surface: Surface
+    ):
+
+        contig = np.ascontiguousarray
+        normal_inner = inner_toroidal_surface.unitnormal().reshape(-1, 3)   
+        gamma_inner = inner_toroidal_surface.gamma().reshape(-1, 3)
+
+        self.dipole_grid_xyz = sopp.remove_magnets_inside_toroidal_surface(
+            contig(normal_inner), 
+            contig(self.dipole_grid_xyz), 
+            contig(gamma_inner))
+
+        inds = np.ravel(np.logical_not(np.all(self.dipole_grid_xyz == 0.0, axis=-1)))
+        self.dipole_grid_xyz = self.dipole_grid_xyz[inds, :]
+
+        self.ndipoles = self.dipole_grid_xyz.shape[0]
+
+        self.pm_phi = np.arctan2(self.dipole_grid_xyz[:, 1], self.dipole_grid_xyz[:, 0])
+
+        pointsToVTK('dipole_grid',
+                    contig(self.dipole_grid_xyz[:, 0]),
+                    contig(self.dipole_grid_xyz[:, 1]),
+                    contig(self.dipole_grid_xyz[:, 2]))
+
+        self.m_maxima = self.m_maxima[inds]
+
+        if self.pol_vectors is not None:
+            self.pol_vectors = self.pol_vectors[inds, :]
+
+        self._optimization_setup()
+
+    def remove_magnets_outside_surface(
+        self,
         outer_toroidal_surface: Surface
     ):
 
@@ -455,7 +488,7 @@ class PermanentMagnetGrid:
         normal_outer = outer_toroidal_surface.unitnormal().reshape(-1, 3)   
         gamma_outer = outer_toroidal_surface.gamma().reshape(-1, 3)
 
-        self.dipole_grid_xyz = sopp.remove_magnets_inside_toroidal_surface(
+        self.dipole_grid_xyz = sopp.remove_magnets_outside_toroidal_surface(
             contig(normal_outer), 
             contig(self.dipole_grid_xyz), 
             contig(gamma_outer))
@@ -478,7 +511,7 @@ class PermanentMagnetGrid:
             self.pol_vectors = self.pol_vectors[inds, :]
 
         self._optimization_setup()
-
+        
     def remove_dipoles_inside_shapes(
         self,
         shape_list

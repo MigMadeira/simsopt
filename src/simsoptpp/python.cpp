@@ -69,6 +69,7 @@ PYBIND11_MODULE(simsoptpp, m) {
     m.def("dipole_field_Bn" , &dipole_field_Bn, py::arg("points"), py::arg("m_points"), py::arg("unitnormal"), py::arg("nfp"), py::arg("stellsym"), py::arg("b"), py::arg("coordinate_flag") = "cartesian", py::arg("R0") = 0.0);
     m.def("define_a_uniform_cartesian_grid_between_two_toroidal_surfaces" , &define_a_uniform_cartesian_grid_between_two_toroidal_surfaces);
     m.def("remove_magnets_inside_toroidal_surface" , &remove_magnets_inside_toroidal_surface);
+    m.def("remove_magnets_outside_toroidal_surface" , &remove_magnets_outside_toroidal_surface);
     m.def("remove_dipoles" , &remove_dipoles);
     m.def("remove_dipoles_inside_cylinder", &remove_dipoles_inside_cylinder);
 
