@@ -511,7 +511,7 @@ class PermanentMagnetGrid:
             self.pol_vectors = self.pol_vectors[inds, :]
 
         self._optimization_setup()
-        
+
     def remove_dipoles_inside_shapes(
         self,
         shape_list
