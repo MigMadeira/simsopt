@@ -8,14 +8,13 @@ class Shape{
     public: 
         virtual ~Shape() { }
         virtual bool condition(Array point) = 0;
-};
+}; //all shapes must have a condition that determines if the dipole is inside the shape or not
 
 using ShapePtr = std::shared_ptr<Shape>;
 
 class Cylinder: public Shape{
     public:
         Array base_point;
-        Array top_point;
         Array axis_vector;
         double height;
         double radius;
@@ -24,7 +23,6 @@ class Cylinder: public Shape{
         Cylinder(double r_major, double r_minor, double toroidal_angle, double poloidal_angle, double _height, double _radius, double theta, double phi);
 
         bool condition(Array point) override;
-        //bool condition(Array point, double lower_bound, double upper_bound);
 };
 
 using CylinderPtr = std::shared_ptr<Cylinder>;

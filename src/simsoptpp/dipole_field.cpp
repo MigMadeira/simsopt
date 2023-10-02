@@ -1066,7 +1066,6 @@ Array remove_dipoles_inside_cylinder(Array& xyz_uniform, double r_major, double 
                                             double height, double radius, double theta, double phi)
 {
     Array base_point = xt::zeros<double>({3});
-    Array top_point = xt::zeros<double>({3});
     Array axis_vector = xt::zeros<double>({3});
 
     base_point[0] = (r_major + r_minor*cos(poloidal_angle))*cos(toroidal_angle);
@@ -1076,10 +1075,6 @@ Array remove_dipoles_inside_cylinder(Array& xyz_uniform, double r_major, double 
     axis_vector[0] = sin(theta)*cos(phi);
     axis_vector[1] = sin(theta)*sin(phi);
     axis_vector[2] = cos(theta);
-
-    top_point[0] = base_point[0] + height*axis_vector[0];
-    top_point[1] = base_point[1] + height*axis_vector[1];
-    top_point[2] = base_point[2] + height*axis_vector[2];
 
     int ngrid = xyz_uniform.shape(0);
     Array final_grid = xt::zeros<double>({ngrid, 3});
