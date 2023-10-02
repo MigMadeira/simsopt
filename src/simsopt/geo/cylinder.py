@@ -53,7 +53,6 @@ def cylinder_to_vtk(cylinder: sopp.Cylinder, filename, n_theta=100, n_z=100, ext
             y.append(cylinder.base_point[1] + vec1[1] + cylinder.radius * vec2[1])
             z.append(cylinder.base_point[2] + vec1[2] + cylinder.radius * vec2[2])
 
-
     x = np.array(x).reshape((1, n_z, n_theta))
     y = np.array(y).reshape((1, n_z, n_theta))
     z = np.array(z).reshape((1, n_z, n_theta))

@@ -7,7 +7,7 @@ __all__ = ['read_focus_coils', 'coil_optimization',
            'initialize_coils', 'calculate_on_axis_B',
            'make_optimization_plots', 'run_Poincare_plots',
            'make_Bnormal_plots', 'initialize_default_kwargs',
-	   'ISTELL_coil_optimization', 'TF_coil_optimization'
+           'ISTELL_coil_optimization', 'TF_coil_optimization'
            ]
 
 import numpy as np
@@ -191,6 +191,7 @@ def coil_optimization(s, bs, base_curves, curves, out_dir=''):
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
 
+
 def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     # optimize the currents in the TF coils
     from simsopt.geo import curves_to_vtk
@@ -200,7 +201,7 @@ def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     nphi = len(s.quadpoints_phi)
     ntheta = len(s.quadpoints_theta)
     ncoils = len(base_curves)
-    
+
     # Define the objective function:
     JF = SquaredFlux(s, bs, definition="local")
 
@@ -226,13 +227,14 @@ def TF_coil_optimization(s, bs, base_curves, curves, out_dir=''):
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
 
+
 def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight=0, length_threshold=0, length_threshold_weight=0, out_dir=''):
     # optimize the currents in the TF coils
     from simsopt.geo import CurveLength
     from simsopt.objectives import QuadraticPenalty
     from simsopt.geo import curves_to_vtk
     from simsopt.objectives import SquaredFlux
-	
+
     out_dir = Path(out_dir)
     nphi = len(s.quadpoints_phi)
     ntheta = len(s.quadpoints_theta)
@@ -242,18 +244,19 @@ def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight=0, length
     nphi = len(s.quadpoints_phi)
     ntheta = len(s.quadpoints_theta)
     ncoils = len(base_curves)
-    
+
     #MAXITER = 5000  # number of iterations for minimize
 
     # Weight on the curve lengths in the objective function:
     LENGTH_WEIGHT = length_weight
-    LENGTH_WEIGHT2 = length_threshold_weight     #penalizes coils with a length over LENGTH_THRESHOLD
+    LENGTH_WEIGHT2 = length_threshold_weight  # penalizes coils with a length over LENGTH_THRESHOLD
     LENGTH_THRESHOLD = length_threshold
 
     Jls = [CurveLength(c) for c in base_curves]
-    Jld = sum(QuadraticPenalty(Jls[i], LENGTH_THRESHOLD,f="max") for i in range(ncoils))
+    Jld = sum(QuadraticPenalty(Jls[i], LENGTH_THRESHOLD, f="max") for i in range(ncoils))
     # Define the objective function:
-    JF = SquaredFlux(s, bs,definition="local") + LENGTH_WEIGHT * sum(Jls) + LENGTH_WEIGHT2 * Jld
+    JF = SquaredFlux(s, bs, definition="local") + LENGTH_WEIGHT * sum(Jls) + LENGTH_WEIGHT2 * Jld
+
     def fun(dofs):
         """ Function for coil optimization grabbed from stage_two_optimization.py """
         JF.x = dofs
@@ -291,8 +294,8 @@ def ISTELL_coil_optimization(s, bs, base_curves, curves, length_weight=0, length
     curves_to_vtk(curves, out_dir / "curves_opt")
     bs.set_points(s.gamma().reshape((-1, 3)))
     return bs
-    
-    
+
+
 def trace_fieldlines(bfield, label, s, comm, out_dir=''):
     """
     Make Poincare plots on a surface as in the trace_fieldlines
